@@ -1,0 +1,166 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum PaymentStatus {
+  PAID
+  UNPAID
+  PENDING
+  REFUNDED
+}
+
+enum LicenseType {
+  MP3_LEASE
+  WAV_LEASE
+  TRACKOUT
+  UNLIMITED
+  EXCLUSIVE
+}
+
+enum FingerprintStatus {
+  PENDING
+  READY
+  FAILED
+}
+
+enum VerificationStatus {
+  LICENSED
+  UNVERIFIED_LICENSE
+  NO_MATCH
+  PROCESSING_FAILED
+}
+
+model User {
+  id           String         @id @default(cuid())
+  email        String         @unique
+  passwordHash String
+  name         String?
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+  beats        Beat[]
+  customers    Customer[]
+  licenses     License[]
+  recognitions Recognition[]
+  payments     Payment[]
+}
+
+model Beat {
+  id                   String            @id @default(cuid())
+  ownerId              String
+  owner                User              @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  title                String
+  producerName         String
+  bpm                  Int?
+  musicalKey           String?
+  genre                String?
+  originalFilePath     String
+  originalFileName     String
+  mimeType             String
+  fingerprintReference String?
+  fingerprintStatus    FingerprintStatus @default(PENDING)
+  fingerprintError     String?
+  duration             Float?
+  createdAt            DateTime          @default(now())
+  updatedAt            DateTime          @updatedAt
+  licenses             License[]
+  recognitions         Recognition[]
+  fingerprint          Fingerprint?
+
+  @@index([ownerId, createdAt])
+}
+
+model Fingerprint {
+  id         String   @id @default(cuid())
+  beatId     String   @unique
+  beat       Beat     @relation(fields: [beatId], references: [id], onDelete: Cascade)
+  algorithm  String
+  hopSize    Int
+  sampleRate Int
+  hashCount  Int
+  hashes     Json
+  createdAt  DateTime @default(now())
+}
+
+model Customer {
+  id        String    @id @default(cuid())
+  ownerId   String
+  owner     User      @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  name      String
+  email     String
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  licenses  License[]
+
+  @@unique([ownerId, email])
+  @@index([ownerId, name])
+}
+
+model License {
+  id             String        @id @default(cuid())
+  ownerId        String
+  owner          User          @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  beatId         String
+  beat           Beat          @relation(fields: [beatId], references: [id], onDelete: Restrict)
+  customerId     String
+  customer       Customer      @relation(fields: [customerId], references: [id], onDelete: Restrict)
+  licenseType    LicenseType
+  amount         Decimal       @db.Decimal(12, 2)
+  currency       String        @default("USD")
+  paymentStatus  PaymentStatus @default(UNPAID)
+  paymentDate    DateTime?
+  expirationDate DateTime?
+  notes          String?
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+  payments       Payment[]
+
+  @@index([ownerId, paymentStatus])
+  @@index([beatId])
+  @@index([customerId])
+}
+
+model Recognition {
+  id                 String             @id @default(cuid())
+  ownerId            String
+  owner              User               @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  uploadedFilePath   String
+  uploadedFileName   String
+  mimeType           String
+  matchedBeatId      String?
+  matchedBeat        Beat?              @relation(fields: [matchedBeatId], references: [id], onDelete: SetNull)
+  confidenceScore    Float?
+  matchTimestamp     Float?
+  queryOffset        Float?
+  verificationStatus VerificationStatus
+  engine             String
+  experimental       Boolean            @default(true)
+  engineMessage      String?
+  alternates         Json?
+  createdAt          DateTime           @default(now())
+
+  @@index([ownerId, createdAt])
+  @@index([matchedBeatId])
+}
+
+model Payment {
+  id                   String        @id @default(cuid())
+  ownerId              String
+  owner                User          @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  licenseId            String
+  license              License       @relation(fields: [licenseId], references: [id], onDelete: Cascade)
+  amount               Decimal       @db.Decimal(12, 2)
+  currency             String
+  paymentMethod        String?
+  transactionReference String?
+  status               PaymentStatus
+  createdAt            DateTime      @default(now())
+  updatedAt            DateTime      @updatedAt
+
+  @@index([ownerId, status])
+  @@index([licenseId])
+}

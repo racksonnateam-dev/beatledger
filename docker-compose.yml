@@ -1,0 +1,14 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: beatledger
+      POSTGRES_PASSWORD: beatledger
+      POSTGRES_DB: beatledger
+    ports:
+      - "54329:5432"
+    volumes:
+      - beatledger_pg:/var/lib/postgresql/data
+
+volumes:
+  beatledger_pg:

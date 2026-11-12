@@ -1,0 +1,17 @@
+node_modules
+.next
+out
+dist
+coverage
+.env
+.env.local
+.env.*.local
+storage
+.data
+*.log
+.DS_Store
+audio-service/.venv
+audio-service/**/__pycache__
+.pytest_cache
+.vercel
+*.tsbuildinfo
