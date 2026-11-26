@@ -44,6 +44,7 @@ export default async function SettingsPage() {
               : health.detail}
           </p>
           <p className="mt-2 text-sm text-zinc-500">Storage driver: {storage}. Audio files are not placed in the public folder.</p>
+          <p className="mt-3 text-sm leading-6 text-zinc-300">{health.platformDetail}</p>
           <ul className="mt-4 list-disc space-y-2 pl-5 text-sm leading-6 text-zinc-400">
             {(health.limitations.length > 0
               ? health.limitations

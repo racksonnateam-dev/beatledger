@@ -1,6 +1,6 @@
 import { Prisma } from "@prisma/client";
 import { NextResponse } from "next/server";
-import { matchAudio } from "@/lib/audio-service";
+import { identifyPlatforms, matchAudio } from "@/lib/audio-service";
 import { prisma } from "@/lib/db";
 import { validateAudioUpload } from "@/lib/files";
 import { jsonError, requireUser } from "@/lib/http";
@@ -130,6 +130,8 @@ export async function POST(request: Request) {
     message = verificationCopy(status);
   }
 
+  const platform = await identifyPlatforms(bytes, `query.${checked.extension}`);
+
   const created = await prisma.recognition.create({
     data: {
       ownerId: user.id,
@@ -149,6 +151,9 @@ export async function POST(request: Request) {
         confidence: match.confidence,
         matchTimestamp: match.matchTimestamp,
       })),
+      platformStatus: platform.status,
+      platformMessage: platform.message,
+      platformMatches: platform.matches as unknown as Prisma.InputJsonValue,
     },
     include: recognitionInclude,
   });

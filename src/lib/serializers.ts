@@ -1,6 +1,12 @@
 import type { Beat, Customer, Fingerprint, License, Payment, Recognition } from "@prisma/client";
 import { moneyNumber } from "@/lib/http";
-import { resolveVerificationStatus, verificationCopy, verificationLabel, type VerificationStatus } from "@/lib/recognition";
+import {
+  resolveVerificationStatus,
+  sanitizePlatformReport,
+  verificationCopy,
+  verificationLabel,
+  type VerificationStatus,
+} from "@/lib/recognition";
 
 export function serializeBeat(beat: Beat & { fingerprint?: Fingerprint | null }) {
   return {
@@ -126,5 +132,12 @@ export function serializeRecognition(
       currency: license.currency ?? null,
     })),
     alternates: recognition.alternates ?? [],
+    platform: sanitizePlatformReport({
+      status: recognition.platformStatus ?? "not_configured",
+      message:
+        recognition.platformMessage ??
+        "This scan did not check a released-music database. Run it again after song identification is configured.",
+      matches: recognition.platformMatches ?? [],
+    }),
   };
 }

@@ -44,7 +44,7 @@ export default async function ScannerPage() {
       <PageHeader
         eyebrow="Scanner"
         title="Recognition Scanner"
-        description="Drop in a file you already have. BeatLedger compares it with your catalogue and shows Licensed, Unverified license, No match found, or Processing failed. It does not scrape other platforms."
+        description="Drop in a file you already have. BeatLedger asks AudD to name a known recording and return Spotify or Apple Music links, then compares the same file with your private catalogue. It does not search those platforms on its own."
       />
       <Scanner history={history} />
     </div>

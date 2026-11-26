@@ -5,6 +5,7 @@ import {
   interpretMatchResponse,
   parseFingerprint,
   resolveVerificationStatus,
+  sanitizePlatformReport,
   verificationCopy,
   verificationLabel,
 } from "@/lib/recognition";
@@ -148,5 +149,28 @@ describe("form validation", () => {
       beatMetaSchema.safeParse({ title: "Night", producerName: "Ada", bpm: 20, musicalKey: "", genre: "" }).success,
     ).toBe(false);
     expect(formatMoney(1250)).toBe("$1,250.00");
+  });
+});
+
+describe("platform identification", () => {
+  it("keeps a real Spotify link and drops a song that was not actually returned", () => {
+    const named = sanitizePlatformReport({
+      status: "matched",
+      message: "Identified a released recording.",
+      matches: [
+        {
+          title: "Sample Song",
+          artist: "Sample Artist",
+          links: [
+            { platform: "Spotify", url: "https://open.spotify.com/track/abc" },
+            { platform: "Spotify", url: "https://evil.example/track" },
+          ],
+        },
+      ],
+    });
+    expect(named.status).toBe("matched");
+    expect(named.matches[0].links).toEqual([{ platform: "Spotify", url: "https://open.spotify.com/track/abc" }]);
+    expect(sanitizePlatformReport({ status: "not_configured", message: "Add a token.", matches: [] }).matches).toEqual([]);
+    expect(sanitizePlatformReport({ status: "error", matches: [{ title: "Invented" }] }).status).toBe("failed");
   });
 });

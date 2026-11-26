@@ -15,17 +15,16 @@ A missing payment is shown as **Unverified license**. It is not labeled as copyr
 
 The audio service uses `landmark-v1`, an experimental private-catalogue fingerprint. See [audio-service/ENGINE.md](audio-service/ENGINE.md) for why Chromaprint and audfprint were not shipped, and for the limits of the matcher.
 
-The engine only returns a match when landmark votes clear a fixed threshold. It never invents a result. Uploaded files only: it does not read YouTube, TikTok, or the public web.
+The engine only returns a match when landmark votes clear a fixed threshold. It never invents a result. Uploaded files only: it does not read YouTube, TikTok, Spotify, or Apple Music.
 
-To use a commercial provider later, set these on the **audio service** (not in browser code):
+To name a known recording the way Shazam does, set an AudD token on the audio service and restart it:
 
 ```
-RECOGNITION_ENGINE=commercial
-RECOGNITION_API_KEY=
-RECOGNITION_API_URL=
+RECOGNITION_API_KEY="your-audd-token"
+RECOGNITION_API_URL="https://enterprise.audd.io/"
 ```
 
-Until a provider client is added in `audio-service/app/engines/commercial.py`, that mode fails closed and returns no match.
+The scanner then shows the title, artist, and any Spotify or Apple Music link AudD actually returns. Without a token, or when the audio is an unreleased beat, that section stays empty. Spotify and Apple Music do not let this app search their catalogs.
 
 ## Setup
 

@@ -10,6 +10,24 @@ from fastapi.responses import JSONResponse
 
 from app.engines.base import AudioDecodeError, EngineNotConfigured
 from app.engines.factory import get_engine
+from app.engines.platforms import configuration_message, identify_file, is_configured
+
+def _load_project_env() -> None:
+    env_path = Path(__file__).resolve().parents[2] / ".env"
+    if not env_path.exists():
+        return
+    for line in env_path.read_text(encoding="utf-8").splitlines():
+        trimmed = line.strip()
+        if not trimmed or trimmed.startswith("#") or "=" not in trimmed:
+            continue
+        key, value = trimmed.split("=", 1)
+        key = key.strip()
+        value = value.strip().strip('"').strip("'")
+        if key in {"RECOGNITION_API_KEY", "RECOGNITION_API_URL", "RECOGNITION_ENGINE", "MAX_UPLOAD_BYTES"} and value and not os.getenv(key):
+            os.environ[key] = value
+
+
+_load_project_env()
 
 MAX_UPLOAD_BYTES = int(os.getenv("MAX_UPLOAD_BYTES", str(40 * 1024 * 1024)))
 MAX_CATALOGUE = 200
@@ -42,6 +60,11 @@ def health():
         "engine": engine.name,
         "experimental": engine.experimental,
         "limitations": engine.limitations,
+        "platformIdentification": {
+            "configured": is_configured(),
+            "provider": "audd",
+            "detail": configuration_message(),
+        },
     }
 
 
@@ -96,6 +119,16 @@ async def fingerprint(file: UploadFile = File(...)):
     path = await _write_upload(file)
     try:
         return get_engine().fingerprint_file(path)
+    finally:
+        if os.path.exists(path):
+            os.unlink(path)
+
+
+@app.post("/identify")
+async def identify(file: UploadFile = File(...)):
+    path = await _write_upload(file)
+    try:
+        return identify_file(path)
     finally:
         if os.path.exists(path):
             os.unlink(path)

@@ -34,6 +34,11 @@ export interface ScanRecord {
   createdAt: string;
   beat: { id: string; title: string; producerName: string } | null;
   licenses: ScanLicense[];
+  platform: {
+    status: "not_configured" | "matched" | "no_match" | "failed";
+    message: string;
+    matches: { title: string | null; artist: string | null; album: string | null; timecode: string | null; links: { platform: string; url: string }[] }[];
+  };
 }
 
 export function Scanner({ history }: { history: ScanRecord[] }) {
@@ -68,7 +73,7 @@ export function Scanner({ history }: { history: ScanRecord[] }) {
         <div className="mb-4 flex items-center justify-between gap-3">
           <div>
             <h2 className="text-base font-medium">Compare an upload</h2>
-            <p className="mt-1 text-sm text-zinc-400">Only files you upload are checked, against your private catalogue.</p>
+            <p className="mt-1 text-sm text-zinc-400">Name a known recording, with Spotify and Apple Music links when the identification service returns them, and compare the same file with your catalogue.</p>
           </div>
           <StatusBadge status="PENDING" label="Experimental engine" />
         </div>
@@ -78,7 +83,7 @@ export function Scanner({ history }: { history: ScanRecord[] }) {
             {pending ? "Comparing…" : "Run recognition"}
           </Button>
         </div>
-        {pending ? <p className="mt-4 text-sm text-zinc-400">Fingerprinting the upload and aligning it with your catalogue.</p> : null}
+        {pending ? <p className="mt-4 text-sm text-zinc-400">Checking the recording database and your private catalogue.</p> : null}
       </Card>
 
       {shown ? (
@@ -88,6 +93,34 @@ export function Scanner({ history }: { history: ScanRecord[] }) {
             {shown.experimental ? <span className="text-xs text-zinc-500">Experimental · {shown.engine}</span> : null}
           </div>
           <p className="mt-3 text-sm leading-6 text-zinc-300">{shown.message}</p>
+          <div className="mt-5">
+            <div className="text-xs uppercase tracking-wide text-zinc-500">Released recording</div>
+            {shown.platform.status === "matched" ? (
+              <ul className="mt-2 space-y-3">
+                {shown.platform.matches.map((match) => (
+                  <li key={`${match.title}-${match.artist}`} className="rounded-lg border border-white/10 px-3 py-3">
+                    <div className="font-medium">{match.title ?? "Untitled recording"}</div>
+                    <div className="text-sm text-zinc-400">
+                      {[match.artist, match.album, match.timecode ? `heard at ${match.timecode} in this file` : null].filter(Boolean).join(" · ")}
+                    </div>
+                    {match.links.length > 0 ? (
+                      <div className="mt-2 flex flex-wrap gap-3 text-sm">
+                        {match.links.map((link) => (
+                          <a key={link.url} href={link.url} target="_blank" rel="noreferrer" className="text-accent hover:underline">
+                            {link.platform}
+                          </a>
+                        ))}
+                      </div>
+                    ) : (
+                      <p className="mt-2 text-sm text-zinc-500">The service named this recording without a Spotify or Apple Music link.</p>
+                    )}
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className="mt-2 text-sm leading-6 text-zinc-400">{shown.platform.message}</p>
+            )}
+          </div>
           {shown.beat ? (
             <div className="mt-5 grid gap-3 sm:grid-cols-3">
               <div>
@@ -137,6 +170,7 @@ export function Scanner({ history }: { history: ScanRecord[] }) {
                 <tr>
                   <th className="px-4 py-3 font-medium">File</th>
                   <th className="px-4 py-3 font-medium">Result</th>
+                  <th className="px-4 py-3 font-medium">Released recording</th>
                   <th className="px-4 py-3 font-medium">Beat</th>
                   <th className="px-4 py-3 font-medium">Confidence</th>
                   <th className="px-4 py-3 font-medium">Timestamp</th>
@@ -149,6 +183,11 @@ export function Scanner({ history }: { history: ScanRecord[] }) {
                     <td className="px-4 py-3">{scan.fileName}</td>
                     <td className="px-4 py-3">
                       <StatusBadge status={scan.status} />
+                    </td>
+                    <td className="px-4 py-3 text-zinc-300">
+                      {scan.platform.matches.length > 0
+                        ? scan.platform.matches.map((match) => [match.title, match.artist].filter(Boolean).join(" — ")).join(", ")
+                        : scan.platform.message}
                     </td>
                     <td className="px-4 py-3 text-zinc-300">{scan.beat?.title ?? "—"}</td>
                     <td className="px-4 py-3">{formatPercent(scan.confidence)}</td>

@@ -23,4 +23,6 @@ The engine is marked **experimental** on the health endpoint and in every finger
 
 ## Commercial provider later
 
-Set `RECOGNITION_ENGINE=commercial` plus `RECOGNITION_API_KEY` and `RECOGNITION_API_URL` on the audio service. Until a provider client is implemented in `app/engines/commercial.py`, those requests fail with HTTP 503 and an empty match list.
+Catalogue matching stays on `landmark-v1`. `POST /identify` is the Shazam-style path: with `RECOGNITION_API_KEY` set to an AudD token, that route sends the uploaded file to AudD's long-file endpoint and returns a song only when AudD recognizes it. AudD's short endpoint only hears the first 12 seconds, which missed songs in a full beat. The scan checks 12-second pieces, up to the first 4 minutes.
+
+`RECOGNITION_ENGINE=commercial` still has no catalogue client. Those catalogue requests fail with HTTP 503 and an empty match list.

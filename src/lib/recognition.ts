@@ -121,6 +121,80 @@ export interface FingerprintPayload {
   hashes: number[][];
 }
 
+export interface PlatformLink {
+  platform: string;
+  url: string;
+}
+
+export interface PlatformMatch {
+  title: string | null;
+  artist: string | null;
+  album: string | null;
+  timecode: string | null;
+  links: PlatformLink[];
+}
+
+export interface PlatformReport {
+  status: "not_configured" | "matched" | "no_match" | "failed";
+  message: string;
+  matches: PlatformMatch[];
+}
+
+const PLATFORM_HOSTS: Record<string, string> = {
+  "open.spotify.com": "Spotify",
+  "music.apple.com": "Apple Music",
+  "song.link": "Songlink",
+  "www.song.link": "Songlink",
+  "lis.tn": "Songlink",
+};
+
+function allowedPlatformLink(url: unknown): PlatformLink | null {
+  if (typeof url !== "string" || !url.startsWith("https://")) return null;
+  try {
+    const host = new URL(url).hostname.toLowerCase();
+    const platform = PLATFORM_HOSTS[host];
+    if (!platform) return null;
+    return { platform, url };
+  } catch {
+    return null;
+  }
+}
+
+export function sanitizePlatformReport(body: unknown): PlatformReport {
+  const record = body && typeof body === "object" ? (body as Record<string, unknown>) : {};
+  const status = record.status;
+  const safeStatus =
+    status === "matched" || status === "no_match" || status === "failed" || status === "not_configured"
+      ? status
+      : "failed";
+  const message =
+    typeof record.message === "string" && record.message.trim()
+      ? record.message.trim().slice(0, 500)
+      : "Song identification did not return a recording.";
+  if (safeStatus !== "matched" || !Array.isArray(record.matches)) {
+    return { status: safeStatus === "matched" ? "failed" : safeStatus, message, matches: [] };
+  }
+  const matches = record.matches.flatMap((item): PlatformMatch[] => {
+    if (!item || typeof item !== "object") return [];
+    const match = item as Record<string, unknown>;
+    const text = (value: unknown) => (typeof value === "string" && value.trim() ? value.trim().slice(0, 200) : null);
+    const links = Array.isArray(match.links)
+      ? match.links.flatMap((link) => {
+          const parsed = link && typeof link === "object" ? allowedPlatformLink((link as { url?: unknown }).url) : null;
+          return parsed ? [parsed] : [];
+        })
+      : [];
+    const title = text(match.title);
+    const artist = text(match.artist);
+    if (!title && !artist && links.length === 0) return [];
+    return [{ title, artist, album: text(match.album), timecode: text(match.timecode), links }];
+  });
+  if (matches.length === 0) {
+    return { status: "failed", message: "Song identification returned an unreadable recording.", matches: [] };
+  }
+  return { status: "matched", message, matches };
+}
+
 export function parseFingerprint(body: unknown): FingerprintPayload {
   if (!body || typeof body !== "object") {
     throw new Error("Audio service returned an unexpected fingerprint.");

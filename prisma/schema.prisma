@@ -141,6 +141,9 @@ model Recognition {
   experimental       Boolean            @default(true)
   engineMessage      String?
   alternates         Json?
+  platformStatus     String?
+  platformMessage    String?
+  platformMatches    Json?
   createdAt          DateTime           @default(now())
 
   @@index([ownerId, createdAt])
