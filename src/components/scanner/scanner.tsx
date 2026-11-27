@@ -37,8 +37,15 @@ export interface ScanRecord {
   platform: {
     status: "not_configured" | "matched" | "no_match" | "failed";
     message: string;
-    matches: { title: string | null; artist: string | null; album: string | null; timecode: string | null; links: { platform: string; url: string }[] }[];
+    matches: { title: string | null; artist: string | null; album: string | null; releaseDate: string | null; timecode: string | null; links: { platform: string; url: string }[] }[];
   };
+}
+
+function formatReleaseDate(value: string) {
+  const [year, month, day] = value.split("-").map(Number);
+  return new Intl.DateTimeFormat("en", { day: "numeric", month: "short", year: "numeric", timeZone: "UTC" }).format(
+    new Date(Date.UTC(year, month - 1, day)),
+  );
 }
 
 export function Scanner({ history }: { history: ScanRecord[] }) {
@@ -103,6 +110,7 @@ export function Scanner({ history }: { history: ScanRecord[] }) {
                     <div className="text-sm text-zinc-400">
                       {[match.artist, match.album, match.timecode ? `heard at ${match.timecode} in this file` : null].filter(Boolean).join(" · ")}
                     </div>
+                    {match.releaseDate ? <div className="mt-1 text-sm text-zinc-300">Released {formatReleaseDate(match.releaseDate)}</div> : null}
                     {match.links.length > 0 ? (
                       <div className="mt-2 flex flex-wrap gap-3 text-sm">
                         {match.links.map((link) => (
@@ -186,7 +194,13 @@ export function Scanner({ history }: { history: ScanRecord[] }) {
                     </td>
                     <td className="px-4 py-3 text-zinc-300">
                       {scan.platform.matches.length > 0
-                        ? scan.platform.matches.map((match) => [match.title, match.artist].filter(Boolean).join(" — ")).join(", ")
+                        ? scan.platform.matches
+                            .map((match) =>
+                              [match.title, match.artist, match.releaseDate ? `released ${formatReleaseDate(match.releaseDate)}` : null]
+                                .filter(Boolean)
+                                .join(" — "),
+                            )
+                            .join(", ")
                         : scan.platform.message}
                     </td>
                     <td className="px-4 py-3 text-zinc-300">{scan.beat?.title ?? "—"}</td>

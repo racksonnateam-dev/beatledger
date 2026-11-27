@@ -17,7 +17,7 @@ function monthLabel(date: Date) {
 
 export default async function OverviewPage() {
   const user = await getCurrentUser();
-  if (!user) redirect("/login");
+  if (!user) redirect("/");
   const since = new Date();
   since.setUTCDate(1);
   since.setUTCMonth(since.getUTCMonth() - 5);

@@ -130,6 +130,7 @@ export interface PlatformMatch {
   title: string | null;
   artist: string | null;
   album: string | null;
+  releaseDate: string | null;
   timecode: string | null;
   links: PlatformLink[];
 }
@@ -147,6 +148,14 @@ const PLATFORM_HOSTS: Record<string, string> = {
   "www.song.link": "Songlink",
   "lis.tn": "Songlink",
 };
+
+function releaseDate(value: unknown): string | null {
+  if (typeof value !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(value)) return null;
+  const [year, month, day] = value.split("-").map(Number);
+  const date = new Date(Date.UTC(year, month - 1, day));
+  if (date.getUTCFullYear() !== year || date.getUTCMonth() !== month - 1 || date.getUTCDate() !== day) return null;
+  return value;
+}
 
 function allowedPlatformLink(url: unknown): PlatformLink | null {
   if (typeof url !== "string" || !url.startsWith("https://")) return null;
@@ -187,7 +196,7 @@ export function sanitizePlatformReport(body: unknown): PlatformReport {
     const title = text(match.title);
     const artist = text(match.artist);
     if (!title && !artist && links.length === 0) return [];
-    return [{ title, artist, album: text(match.album), timecode: text(match.timecode), links }];
+    return [{ title, artist, album: text(match.album), releaseDate: releaseDate(match.releaseDate), timecode: text(match.timecode), links }];
   });
   if (matches.length === 0) {
     return { status: "failed", message: "Song identification returned an unreadable recording.", matches: [] };

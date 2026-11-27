@@ -19,7 +19,6 @@ export class SlidingWindowLimiter {
 }
 
 export const loginLimiter = new SlidingWindowLimiter(10, 15 * 60 * 1000);
-export const recognitionLimiter = new SlidingWindowLimiter(8, 10 * 60 * 1000);
 
 export function clientAddress(request: Request) {
   const forwarded = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim();

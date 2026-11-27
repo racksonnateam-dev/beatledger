@@ -9,7 +9,7 @@ export const dynamic = "force-dynamic";
 
 export default async function ScannerPage() {
   const user = await getCurrentUser();
-  if (!user) redirect("/login");
+  if (!user) redirect("/");
   const rows = await prisma.recognition.findMany({
     where: { ownerId: user.id },
     include: { matchedBeat: { select: { id: true, title: true, producerName: true } } },

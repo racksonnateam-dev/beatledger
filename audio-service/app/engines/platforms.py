@@ -90,6 +90,20 @@ def _links_from_result(result: dict) -> list[dict]:
     return found
 
 
+def _release_date(value: object) -> str | None:
+    text = _text(value, 10)
+    if text is None or len(text) != 10 or text[4] != "-" or text[7] != "-":
+        return None
+    year, month, day = text.split("-")
+    if not (year.isdigit() and month.isdigit() and day.isdigit()):
+        return None
+    month_number = int(month)
+    day_number = int(day)
+    if not 1 <= month_number <= 12 or not 1 <= day_number <= 31:
+        return None
+    return text
+
+
 def _match_from_song(song: dict, heard_at: str | None) -> dict | None:
     title = _text(song.get("title"))
     artist = _text(song.get("artist"))
@@ -100,6 +114,7 @@ def _match_from_song(song: dict, heard_at: str | None) -> dict | None:
         "title": title,
         "artist": artist,
         "album": _text(song.get("album")),
+        "releaseDate": _release_date(song.get("release_date")),
         "timecode": heard_at,
         "links": links,
     }

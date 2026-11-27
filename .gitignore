@@ -14,4 +14,5 @@ audio-service/.venv
 audio-service/**/__pycache__
 .pytest_cache
 .vercel
+share/
 *.tsbuildinfo

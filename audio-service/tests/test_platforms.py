@@ -47,7 +47,7 @@ def test_enterprise_chunks_keep_unique_songs_and_songlink():
                 {
                     "offset": "00:00",
                     "songs": [
-                        {"title": "Цветы", "artist": "luvdakash", "album": "Цветы", "song_link": "https://lis.tn/dXlcAR"},
+                        {"title": "Цветы", "artist": "luvdakash", "album": "Цветы", "release_date": "2024-03-15", "song_link": "https://lis.tn/dXlcAR"},
                         {"title": "if can say", "artist": "Artixx", "song_link": "https://evil.example/nope"},
                     ],
                 },
@@ -57,6 +57,8 @@ def test_enterprise_chunks_keep_unique_songs_and_songlink():
     )
     assert report["status"] == "matched"
     assert [(item["title"], item["timecode"]) for item in report["matches"]] == [("Цветы", "00:00"), ("if can say", "00:00")]
+    assert report["matches"][0]["releaseDate"] == "2024-03-15"
+    assert report["matches"][1]["releaseDate"] is None
     assert report["matches"][0]["links"] == [{"platform": "Songlink", "url": "https://lis.tn/dXlcAR"}]
     assert report["matches"][1]["links"] == []
 

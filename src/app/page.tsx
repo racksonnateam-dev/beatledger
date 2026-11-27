@@ -11,11 +11,8 @@ export default function HomePage() {
         Register a private catalogue, compare uploaded audio with an experimental fingerprint, and keep licenses and payments in one ledger. A missing payment is an unverified license, not an infringement finding.
       </p>
       <div className="mt-8 flex gap-3">
-        <Link href="/register" className="rounded-lg bg-primary px-4 py-2.5 text-sm font-medium text-white hover:bg-violet-500">
-          Create account
-        </Link>
-        <Link href="/login" className="rounded-lg border border-white/10 px-4 py-2.5 text-sm font-medium text-white hover:bg-white/5">
-          Sign in
+        <Link href="/scanner" className="rounded-lg bg-primary px-4 py-2.5 text-sm font-medium text-white hover:bg-violet-500">
+          Open the scanner
         </Link>
       </div>
     </main>

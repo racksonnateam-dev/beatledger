@@ -10,7 +10,7 @@ export const dynamic = "force-dynamic";
 
 export default async function PaymentsPage() {
   const user = await getCurrentUser();
-  if (!user) redirect("/login");
+  if (!user) redirect("/");
   const [payments, licenses, paid, outstanding] = await Promise.all([
     prisma.payment.findMany({
       where: { ownerId: user.id },

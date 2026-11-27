@@ -9,7 +9,7 @@ export const dynamic = "force-dynamic";
 
 export default async function LicensesPage() {
   const user = await getCurrentUser();
-  if (!user) redirect("/login");
+  if (!user) redirect("/");
   const [licenses, beats, customers] = await Promise.all([
     prisma.license.findMany({
       where: { ownerId: user.id },

@@ -4,7 +4,6 @@ import { identifyPlatforms, matchAudio } from "@/lib/audio-service";
 import { prisma } from "@/lib/db";
 import { validateAudioUpload } from "@/lib/files";
 import { jsonError, requireUser } from "@/lib/http";
-import { clientAddress, recognitionLimiter } from "@/lib/rate-limit";
 import { verificationCopy, type EngineMatch } from "@/lib/recognition";
 import { resolveVerificationStatus } from "@/lib/recognition";
 import { serializeRecognition } from "@/lib/serializers";
@@ -56,12 +55,6 @@ export async function GET() {
 export async function POST(request: Request) {
   const { user, error } = await requireUser();
   if (!user) return error;
-  const limited = recognitionLimiter.check(`scan:${user.id}:${clientAddress(request)}`);
-  if (!limited.allowed) {
-    return jsonError(429, "Recognition limit reached. Try again in a few minutes.", {
-      retryAfterSeconds: limited.retryAfterSeconds,
-    });
-  }
 
   const form = await request.formData();
   const file = form.get("file");

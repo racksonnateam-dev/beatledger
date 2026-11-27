@@ -9,7 +9,7 @@ export const dynamic = "force-dynamic";
 
 export default async function CustomersPage() {
   const user = await getCurrentUser();
-  if (!user) redirect("/login");
+  if (!user) redirect("/");
   const customers = await prisma.customer.findMany({
     where: { ownerId: user.id },
     orderBy: { createdAt: "desc" },

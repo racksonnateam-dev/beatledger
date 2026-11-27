@@ -5,13 +5,12 @@ import {
   CreditCard,
   Disc3,
   LayoutDashboard,
-  LogOut,
   ScrollText,
   Settings,
   Users,
 } from "lucide-react";
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 import { cn } from "@/lib/cn";
 
 const items = [
@@ -51,12 +50,6 @@ function NavLinks({ onNavigate }: { onNavigate?: () => void }) {
 }
 
 export function Sidebar({ email }: { email: string }) {
-  const router = useRouter();
-  async function signOut() {
-    await fetch("/api/auth/logout", { method: "POST" });
-    router.push("/login");
-    router.refresh();
-  }
   return (
     <>
       <aside className="fixed inset-y-0 left-0 z-30 hidden w-64 flex-col border-r border-white/10 bg-[#0c0c0f]/95 px-4 py-5 lg:flex">
@@ -67,10 +60,6 @@ export function Sidebar({ email }: { email: string }) {
         <NavLinks />
         <div className="mt-auto border-t border-white/10 pt-4">
           <div className="truncate px-2 text-xs text-zinc-500">{email}</div>
-          <button type="button" onClick={signOut} className="mt-2 flex w-full items-center gap-2 rounded-lg px-2 py-2 text-sm text-zinc-300 hover:bg-white/5 hover:text-white">
-            <LogOut className="h-4 w-4" />
-            Sign out
-          </button>
         </div>
       </aside>
       <div className="border-b border-white/10 bg-[#0c0c0f] px-4 py-3 lg:hidden">

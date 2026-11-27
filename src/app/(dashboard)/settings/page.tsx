@@ -10,7 +10,7 @@ export const dynamic = "force-dynamic";
 
 export default async function SettingsPage() {
   const user = await getCurrentUser();
-  if (!user) redirect("/login");
+  if (!user) redirect("/");
   const health = await engineHealth();
   const storage = process.env.STORAGE_DRIVER || "local";
   return (
@@ -18,7 +18,7 @@ export default async function SettingsPage() {
       <PageHeader
         eyebrow="Account"
         title="Settings"
-        description="Sign-in details, where files are stored, and the recognition engine currently configured on the audio service."
+        description="Where files are stored, and the recognition engine currently configured on the audio service."
       />
       <div className="grid gap-4 lg:grid-cols-2">
         <Card className="p-5">
